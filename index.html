@@ -9,10 +9,10 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- App logic -->
+  <!-- App Logic -->
   <script defer src="app.js"></script>
 
-  <!-- Safety refresh for signage -->
+  <!-- Signage safety refresh -->
   <meta http-equiv="refresh" content="300">
 </head>
 
@@ -21,7 +21,7 @@
     <div class="canvas">
 
       <!-- ================= MENU ================= -->
-      <!-- 2790 x 1960 -->
+      <!-- 2790 × 1960 -->
       <section class="zone menu">
         <img
           class="img contain"
@@ -31,7 +31,7 @@
       </section>
 
       <!-- ================= PROMO A ================= -->
-      <!-- 1050 x 910 -->
+      <!-- 1050 × 910 -->
       <section class="zone promoA">
         <img
           id="promoTopImg"
@@ -42,7 +42,7 @@
       </section>
 
       <!-- ================= PROMO B ================= -->
-      <!-- 1050 x 1050 -->
+      <!-- 1050 × 1050 -->
       <section class="zone promoB">
         <img
           id="promoBottomImg"
@@ -53,14 +53,11 @@
       </section>
 
       <!-- ================= TICKER ================= -->
-      <!-- 3840 x 200 -->
+      <!-- 3840 × 200 -->
       <footer class="ticker">
 
-        <!-- Left: location + date -->
-        <div class="tickLeft">
-          <span class="label">OHSWEKEN</span>
-          <span class="muted" id="dateText">—</span>
-        </div>
+        <!-- Left spacer (future logo or alerts) -->
+        <div class="tickLeft"></div>
 
         <!-- Middle: 7-day scrolling forecast -->
         <div class="tickScroll">
@@ -71,8 +68,12 @@
           </div>
         </div>
 
-        <!-- Right: clock -->
-        <div class="tickRight" id="clock">—:—</div>
+        <!-- Right: stacked Location / Date / Time -->
+        <div class="tickRightStack">
+          <div class="loc">OHSWEKEN</div>
+          <div class="date" id="dateText">—</div>
+          <div class="time" id="clock">—:—</div>
+        </div>
 
       </footer>
 
