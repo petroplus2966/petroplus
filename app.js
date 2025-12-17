@@ -20,26 +20,38 @@ setInterval(updateClockAndDate, 10_000);
 
 /* =========================================================
    TICKER MODE ROTATION (WEATHER <-> SPORTS)
+   Starts immediately, switches quickly once for verification
 ========================================================= */
-let weatherLine = "FETCHING 7-DAY FORECAST…";
-let sportsLine = "FETCHING SPORTS HEADLINES…";
-let tickerMode = "weather"; // "weather" | "sports"
+let weatherLine = "WEATHER: FETCHING 7-DAY FORECAST…";
+let sportsLine  = "SPORTS: FETCHING HEADLINES…";
+let tickerMode  = "weather"; // "weather" | "sports"
 
 function setTickerText(line) {
   const track = document.getElementById("forecastTrack");
   if (!track) return;
-
-  // duplicate for seamless scroll
   track.textContent = `${line}   •   ${line}`;
 }
 
-function rotateTickerMode() {
-  tickerMode = (tickerMode === "weather") ? "sports" : "weather";
-  setTickerText(tickerMode === "weather" ? weatherLine : sportsLine);
+function showWeather() {
+  tickerMode = "weather";
+  setTickerText(weatherLine);
 }
 
-// Switch between weather and sports every 30 seconds
-setInterval(rotateTickerMode, 30_000);
+function showSports() {
+  tickerMode = "sports";
+  setTickerText(sportsLine);
+}
+
+function rotateTickerMode() {
+  if (tickerMode === "weather") showSports();
+  else showWeather();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showWeather();
+  setTimeout(showSports, 15_000);          // quick verify sports shows
+  setInterval(rotateTickerMode, 30_000);   // then alternate forever
+});
 
 
 /* =========================================================
@@ -56,7 +68,7 @@ async function loadWeather() {
   if (nowTemp) nowTemp.textContent = "—°C";
   if (nowMeta) nowMeta.textContent = "FETCHING CURRENT…";
 
-  const lat = 42.93;
+  const lat = 42.93; // Ohsweken approx
   const lon = -80.12;
 
   const url =
@@ -115,6 +127,7 @@ async function loadWeather() {
       if (feels != null) metaParts.push(`FEELS ${Math.round(feels)}°`);
       if (hum != null) metaParts.push(`HUM ${Math.round(hum)}%`);
       if (wind != null) metaParts.push(`WIND ${Math.round(wind)} KM/H`);
+
       nowMeta.textContent = metaParts.join(" • ");
     } else {
       if (nowMeta) nowMeta.textContent = "CURRENT UNAVAILABLE";
@@ -141,14 +154,12 @@ async function loadWeather() {
       parts.push(`${dow} ${md} ${dailyIcon(hi, mm)} ${hi}°/${lo}°`);
     }
 
-    weatherLine = parts.join("   •   ");
-
-    // If we’re currently in weather mode, update immediately
+    weatherLine = "WEATHER: " + parts.join("   •   ");
     if (tickerMode === "weather") setTickerText(weatherLine);
 
   } catch (err) {
     console.error("Weather error:", err);
-    weatherLine = "WEATHER UNAVAILABLE";
+    weatherLine = "WEATHER: UNAVAILABLE";
     if (tickerMode === "weather") setTickerText(weatherLine);
     const nowMeta = document.getElementById("nowMeta");
     if (nowMeta) nowMeta.textContent = "WEATHER UNAVAILABLE";
@@ -161,13 +172,11 @@ setInterval(loadWeather, 30 * 60 * 1000);
 
 
 /* =========================================================
-   SPORTSNET RSS -> HEADLINES (for ticker)
-   Uses AllOrigins CORS proxy, parses RSS XML in browser
+   SPORTSNET RSS -> HEADLINES (ticker)
+   Tries multiple CORS-friendly fetch methods
 ========================================================= */
 async function loadSportsHeadlines() {
-  // Sportsnet main feed (you can swap to NHL/NBA/etc later)
   const rssUrl = "https://www.sportsnet.ca/feed/";
-  const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(rssUrl);
 
   function sportEmoji(title) {
     const t = title.toLowerCase();
@@ -179,33 +188,84 @@ async function loadSportsHeadlines() {
     return "📰";
   }
 
-  try {
-    const res = await fetch(proxy, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-
-    const xmlText = json?.contents;
-    if (!xmlText) throw new Error("No RSS contents");
-
+  function parseRssXml(xmlText) {
     const doc = new DOMParser().parseFromString(xmlText, "text/xml");
     const items = Array.from(doc.querySelectorAll("item"));
-
     const titles = items
       .map(it => (it.querySelector("title")?.textContent || "").trim())
       .filter(Boolean)
       .slice(0, 10);
 
-    if (!titles.length) throw new Error("No titles");
+    if (!titles.length) throw new Error("No RSS titles found");
 
     const parts = titles.map(t => `${sportEmoji(t)} ${t.toUpperCase()}`);
-    sportsLine = parts.join("   •   ");
+    return parts.join("   •   ");
+  }
 
-    // If we’re currently in sports mode, update immediately
+  // Method 1: Jina proxy
+  async function fetchViaJina() {
+    const url = "https://r.jina.ai/http://www.sportsnet.ca/feed/";
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Jina HTTP ${res.status}`);
+    const text = await res.text();
+    const idx = text.indexOf("<rss");
+    if (idx === -1) throw new Error("Jina: RSS tag not found");
+    return text.slice(idx);
+  }
+
+  // Method 2: AllOrigins
+  async function fetchViaAllOrigins() {
+    const proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(rssUrl);
+    const res = await fetch(proxy, { cache: "no-store" });
+    if (!res.ok) throw new Error(`AllOrigins HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json?.contents) throw new Error("AllOrigins: no contents");
+    return json.contents;
+  }
+
+  // Method 3: rss2json
+  async function fetchViaRss2Json() {
+    const url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`rss2json HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json?.items?.length) throw new Error("rss2json: no items");
+
+    const titles = json.items
+      .slice(0, 10)
+      .map(it => (it.title || "").trim())
+      .filter(Boolean);
+
+    if (!titles.length) throw new Error("rss2json: no titles");
+
+    const parts = titles.map(t => `${sportEmoji(t)} ${t.toUpperCase()}`);
+    return parts.join("   •   ");
+  }
+
+  try {
+    let xmlText;
+
+    try {
+      xmlText = await fetchViaJina();
+      sportsLine = "SPORTS: " + parseRssXml(xmlText);
+    } catch (e1) {
+      console.warn("Sports fetch via Jina failed:", e1);
+
+      try {
+        xmlText = await fetchViaAllOrigins();
+        sportsLine = "SPORTS: " + parseRssXml(xmlText);
+      } catch (e2) {
+        console.warn("Sports fetch via AllOrigins failed:", e2);
+
+        sportsLine = "SPORTS: " + (await fetchViaRss2Json());
+      }
+    }
+
     if (tickerMode === "sports") setTickerText(sportsLine);
 
   } catch (err) {
     console.error("Sports RSS error:", err);
-    sportsLine = "SPORTS HEADLINES UNAVAILABLE";
+    sportsLine = "SPORTS: HEADLINES UNAVAILABLE";
     if (tickerMode === "sports") setTickerText(sportsLine);
   }
 }
