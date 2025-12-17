@@ -10,7 +10,7 @@ function updateClockAndDate() {
   const date  = document.getElementById("dateText");
 
   if (clock) clock.textContent = `${hh}:${mm}`;
-  if (date)  date.textContent  = now.toLocaleDateString("en-CA");
+  if (date)  date.textContent = now.toLocaleDateString("en-CA");
 }
 updateClockAndDate();
 setInterval(updateClockAndDate, 10_000);
@@ -31,7 +31,7 @@ setInterval(updateClockAndDate, 10_000);
 
 
 /* =========================================================
-   PROMO SLIDESHOW (FADE, 15s PER SLIDE)
+   PROMO SLIDESHOW (FADE + CACHE-BUSTING, 15s)
 ========================================================= */
 const promoFiles = [
   "promo1.jpg",
@@ -45,19 +45,22 @@ const promoFiles = [
   if (!img) return;
 
   let index = 0;
-  img.src = promoFiles[index];
+
+  function setSrc(file){
+    // Cache-busting: always load latest image
+    img.src = file + "?v=" + Date.now();
+  }
+
+  setSrc(promoFiles[index]);
 
   setInterval(() => {
-    // fade out
     img.classList.add("fadeOut");
 
-    // swap image mid-fade
     setTimeout(() => {
       index = (index + 1) % promoFiles.length;
-      img.src = promoFiles[index];
+      setSrc(promoFiles[index]);
     }, 400);
 
-    // fade back in
     setTimeout(() => {
       img.classList.remove("fadeOut");
     }, 800);
@@ -79,7 +82,7 @@ function rebuildTicker() {
 
   const base = `${weatherText}   •   ${sportsText}`;
 
-  // Heavy padding so crawl stays slow & readable
+  // Pad heavily so crawl stays slow & readable
   let combined = base;
   while (combined.length < 1600) {
     combined += "   •   " + base;
