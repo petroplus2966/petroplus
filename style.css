@@ -214,3 +214,15 @@ html,body{
   object-fit:contain;
   background:#000;
 }
+
+/* =========================================================
+   PROMO FADE TRANSITION (15s slideshow)
+========================================================= */
+#promoImg{
+  opacity:1;
+  transition: opacity 0.8s ease-in-out;
+}
+
+#promoImg.fadeOut{
+  opacity:0;
+}
