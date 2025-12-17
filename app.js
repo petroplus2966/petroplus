@@ -3,13 +3,14 @@
 ========================================================= */
 function updateClockAndDate() {
   const now = new Date();
-
   const hh = String(now.getHours()).padStart(2, "0");
   const mm = String(now.getMinutes()).padStart(2, "0");
 
-  document.getElementById("clock").textContent = `${hh}:${mm}`;
-  document.getElementById("dateText").textContent =
-    now.toLocaleDateString("en-CA");
+  const clock = document.getElementById("clock");
+  const date  = document.getElementById("dateText");
+
+  if (clock) clock.textContent = `${hh}:${mm}`;
+  if (date)  date.textContent  = now.toLocaleDateString("en-CA");
 }
 updateClockAndDate();
 setInterval(updateClockAndDate, 10_000);
@@ -19,7 +20,7 @@ setInterval(updateClockAndDate, 10_000);
    DAILY RELOAD @ 2:00 AM (LOCAL DEVICE TIME)
 ========================================================= */
 (function schedule2AMReload(){
-  const now  = new Date();
+  const now = new Date();
   const next = new Date(now);
 
   next.setHours(2, 0, 0, 0);
@@ -53,7 +54,7 @@ function rebuildTicker() {
 
 
 /* =========================================================
-   WEATHER (CURRENT + 7-DAY)
+   WEATHER (CURRENT + 7-DAY) — FIXED
 ========================================================= */
 async function loadWeather() {
   const lat = 42.93;   // Ohsweken
@@ -65,11 +66,12 @@ async function loadWeather() {
 
   if (nowIcon) nowIcon.textContent = "—";
   if (nowTemp) nowTemp.textContent = "—°C";
-  if (nowMeta) nowMeta.textContent = "LOADING…";
+  if (nowMeta) nowMeta.textContent = "FETCHING CURRENT…";
 
   const url =
     "https://api.open-meteo.com/v1/forecast" +
     `?latitude=${lat}&longitude=${lon}` +
+    `&current_weather=true` +
     `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m` +
     `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum` +
     `&forecast_days=7&timezone=America%2FToronto`;
@@ -78,6 +80,7 @@ async function loadWeather() {
     if (code === 0) return { icon: "☀️", text: "CLEAR" };
     if ([1,2].includes(code)) return { icon: "⛅️", text: "PARTLY CLOUDY" };
     if (code === 3) return { icon: "☁️", text: "CLOUDY" };
+    if ([45,48].includes(code)) return { icon: "🌫️", text: "FOG" };
     if ([61,63,65].includes(code)) return { icon: "🌧️", text: "RAIN" };
     if ([71,73,75].includes(code)) return { icon: "❄️", text: "SNOW" };
     if ([95,96,99].includes(code)) return { icon: "⛈️", text: "STORM" };
@@ -92,27 +95,34 @@ async function loadWeather() {
   }
 
   try {
-    const res  = await fetch(url, { cache:"no-store" });
+    const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
 
     /* ---------- CURRENT CONDITIONS ---------- */
-    const c = data.current;
-    if (c && nowIcon && nowTemp && nowMeta) {
-      const cond = currentIcon(c.weather_code);
+    const c  = data.current || null;
+    const cw = data.current_weather || null;
+
+    const temp  = c?.temperature_2m ?? cw?.temperature ?? null;
+    const feels = c?.apparent_temperature ?? null;
+    const hum   = c?.relative_humidity_2m ?? null;
+    const wind  = c?.wind_speed_10m ?? cw?.windspeed ?? null;
+    const code  = c?.weather_code ?? cw?.weathercode ?? null;
+
+    if (temp != null && nowIcon && nowTemp && nowMeta) {
+      const cond = currentIcon(Number(code));
 
       nowIcon.textContent = cond.icon;
-      nowTemp.textContent = `${Math.round(c.temperature_2m)}°C`;
+      nowTemp.textContent = `${Math.round(temp)}°C`;
 
       const meta = [];
       meta.push(cond.text);
-      if (c.apparent_temperature != null)
-        meta.push(`FEELS ${Math.round(c.apparent_temperature)}°`);
-      if (c.relative_humidity_2m != null)
-        meta.push(`HUM ${Math.round(c.relative_humidity_2m)}%`);
-      if (c.wind_speed_10m != null)
-        meta.push(`WIND ${Math.round(c.wind_speed_10m)} KM/H`);
+      if (feels != null) meta.push(`FEELS ${Math.round(feels)}°`);
+      if (hum != null)   meta.push(`HUM ${Math.round(hum)}%`);
+      if (wind != null)  meta.push(`WIND ${Math.round(wind)} KM/H`);
 
       nowMeta.textContent = meta.join(" • ");
+    } else {
+      if (nowMeta) nowMeta.textContent = "CURRENT UNAVAILABLE";
     }
 
     /* ---------- 7-DAY FORECAST ---------- */
@@ -131,9 +141,10 @@ async function loadWeather() {
     weatherText = `WEATHER: ${parts.join("   •   ")}`;
     rebuildTicker();
 
-  } catch {
-    weatherText = "WEATHER UNAVAILABLE";
+  } catch (err) {
+    console.error("Weather error:", err);
     if (nowMeta) nowMeta.textContent = "WEATHER UNAVAILABLE";
+    weatherText = "WEATHER UNAVAILABLE";
     rebuildTicker();
   }
 }
@@ -170,7 +181,8 @@ async function loadSports() {
     sportsText = `SPORTS: ${headlines.join("   •   ")}`;
     rebuildTicker();
 
-  } catch {
+  } catch (err) {
+    console.error("Sports error:", err);
     sportsText = "SPORTS HEADLINES UNAVAILABLE";
     rebuildTicker();
   }
