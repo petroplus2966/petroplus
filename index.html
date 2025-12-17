@@ -5,41 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Menu Board</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Optional: refresh page every 5 minutes -->
   <meta http-equiv="refresh" content="300">
 </head>
 
 <body>
   <main class="board">
-    <!-- ZONE 1 (Top Left): Menu JPEG -->
+    <!-- ZONE 1 -->
     <section class="zone z1">
-      <img class="fit" src="assets/menu.jpg" alt="Menu" />
+      <img class="fit" src="menu.jpg" alt="Menu" />
     </section>
 
-    <!-- ZONE 2 (Top Right): News (embed) OR image -->
+    <!-- ZONE 2 (remove iframe; use an image) -->
     <section class="zone z2">
-      <!-- Option A: embed a website -->
-      <iframe
-        class="frame"
-        src="https://www.espn.com"
-        title="News"
-        loading="lazy"
-        referrerpolicy="no-referrer"
-      ></iframe>
-
-      <!-- Option B: use an image instead (uncomment and remove iframe)
-      <img class="fit" src="assets/promo1.jpg" alt="Promo" />
-      -->
+      <img class="fit" src="promo2.jpg" alt="Promo" />
     </section>
 
-    <!-- ZONE 3 (Bottom Left): Promo image -->
+    <!-- ZONE 3 (use menu again or add another promo image later) -->
     <section class="zone z3">
-      <img class="fit" src="assets/promo1.jpg" alt="Promo 1" />
+      <img class="fit" src="menu.jpg" alt="Menu" />
     </section>
 
-    <!-- ZONE 4 (Bottom Right): Another promo or QR -->
+    <!-- ZONE 4 -->
     <section class="zone z4">
-      <img class="fit" src="assets/promo2.jpg" alt="Promo 2" />
+      <img class="fit" src="promo2.jpg" alt="Promo" />
     </section>
   </main>
 </body>
