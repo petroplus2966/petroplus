@@ -31,38 +31,38 @@ setInterval(updateClockAndDate, 10_000);
 
 
 /* =========================================================
-   PROMO ROTATION (SINGLE PROMO ZONE)
+   PROMO SLIDESHOW (FADE, 15s PER SLIDE)
 ========================================================= */
-const promoFiles = ["promo1.jpg", "promo2.jpg", "promo3.jpg", "promo4.jpg"];
+const promoFiles = [
+  "promo1.jpg",
+  "promo2.jpg",
+  "promo3.jpg",
+  "promo4.jpg"
+];
 
-(async function rotatePromo(){
+(function promoSlideshow(){
   const img = document.getElementById("promoImg");
   if (!img) return;
 
-  // Only use files that actually exist (prevents broken images)
-  async function exists(path){
-    try{
-      const r = await fetch(path, { method:"HEAD", cache:"no-store" });
-      return r.ok;
-    }catch{
-      return false;
-    }
-  }
-
-  const available = [];
-  for (const f of promoFiles){
-    if (await exists(f)) available.push(f);
-  }
-
-  if (available.length === 0) return;
-
-  let i = 0;
-  img.src = available[i];
+  let index = 0;
+  img.src = promoFiles[index];
 
   setInterval(() => {
-    i = (i + 1) % available.length;
-    img.src = available[i];
-  }, 12_000);
+    // fade out
+    img.classList.add("fadeOut");
+
+    // swap image mid-fade
+    setTimeout(() => {
+      index = (index + 1) % promoFiles.length;
+      img.src = promoFiles[index];
+    }, 400);
+
+    // fade back in
+    setTimeout(() => {
+      img.classList.remove("fadeOut");
+    }, 800);
+
+  }, 15_000);
 })();
 
 
@@ -79,7 +79,7 @@ function rebuildTicker() {
 
   const base = `${weatherText}   •   ${sportsText}`;
 
-  // Heavy padding for slow, readable crawl
+  // Heavy padding so crawl stays slow & readable
   let combined = base;
   while (combined.length < 1600) {
     combined += "   •   " + base;
@@ -90,7 +90,7 @@ function rebuildTicker() {
 
 
 /* =========================================================
-   WEATHER (CURRENT + 7-DAY) — STABLE
+   WEATHER (CURRENT + 7-DAY FORECAST)
 ========================================================= */
 async function loadWeather() {
   const lat = 42.93;   // Ohsweken
@@ -113,15 +113,14 @@ async function loadWeather() {
     `&forecast_days=7&timezone=America%2FToronto`;
 
   function currentIcon(code) {
-    if (code === 0) return { icon: "☀️", text: "CLEAR" };
-    if ([1,2].includes(code)) return { icon: "⛅️", text: "PARTLY CLOUDY" };
-    if (code === 3) return { icon: "☁️", text: "CLOUDY" };
-    if ([45,48].includes(code)) return { icon: "🌫️", text: "FOG" };
-    if ([51,53,55,56,57].includes(code)) return { icon: "🌦️", text: "DRIZZLE" };
-    if ([61,63,65,66,67,80,81,82].includes(code)) return { icon: "🌧️", text: "RAIN" };
-    if ([71,73,75,77,85,86].includes(code)) return { icon: "❄️", text: "SNOW" };
-    if ([95,96,99].includes(code)) return { icon: "⛈️", text: "STORM" };
-    return { icon: "🌡️", text: "WEATHER" };
+    if (code === 0) return { icon:"☀️", text:"CLEAR" };
+    if ([1,2].includes(code)) return { icon:"⛅️", text:"PARTLY CLOUDY" };
+    if (code === 3) return { icon:"☁️", text:"CLOUDY" };
+    if ([45,48].includes(code)) return { icon:"🌫️", text:"FOG" };
+    if ([61,63,65].includes(code)) return { icon:"🌧️", text:"RAIN" };
+    if ([71,73,75].includes(code)) return { icon:"❄️", text:"SNOW" };
+    if ([95,96,99].includes(code)) return { icon:"⛈️", text:"STORM" };
+    return { icon:"🌡️", text:"WEATHER" };
   }
 
   function dailyIcon(rain, hi) {
@@ -132,11 +131,10 @@ async function loadWeather() {
   }
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res  = await fetch(url, { cache:"no-store" });
     const data = await res.json();
 
-    /* ---------- CURRENT CONDITIONS ---------- */
+    /* CURRENT */
     const c  = data.current || null;
     const cw = data.current_weather || null;
 
@@ -156,34 +154,28 @@ async function loadWeather() {
       if (feels != null) meta.push(`FEELS ${Math.round(feels)}°`);
       if (hum != null)   meta.push(`HUM ${Math.round(hum)}%`);
       if (wind != null)  meta.push(`WIND ${Math.round(wind)} KM/H`);
-
       nowMeta.textContent = meta.join(" • ");
-    } else {
-      if (nowMeta) nowMeta.textContent = "CURRENT UNAVAILABLE";
     }
 
-    /* ---------- 7-DAY FORECAST ---------- */
-    const days = data?.daily?.time ?? [];
-    const hi   = data?.daily?.temperature_2m_max ?? [];
-    const lo   = data?.daily?.temperature_2m_min ?? [];
-    const rain = data?.daily?.precipitation_sum ?? [];
+    /* 7-DAY FORECAST (TICKER) */
+    const days = data.daily.time;
+    const hi   = data.daily.temperature_2m_max;
+    const lo   = data.daily.temperature_2m_min;
+    const rain = data.daily.precipitation_sum;
 
-    if (!days.length) throw new Error("No daily forecast");
-
-    const parts = days.slice(0, 7).map((d, i) => {
-      const date = new Date(d + "T00:00:00");
-      const dow  = date.toLocaleDateString("en-CA",{ weekday:"short" }).toUpperCase();
-      const md   = date.toLocaleDateString("en-CA",{ month:"2-digit", day:"2-digit" });
-      return `${dow} ${md} ${dailyIcon(Number(rain[i] ?? 0), Number(hi[i] ?? 0))} ${Math.round(hi[i])}°/${Math.round(lo[i])}°`;
+    const parts = days.slice(0,7).map((d,i)=>{
+      const dt = new Date(d+"T00:00:00");
+      const dow = dt.toLocaleDateString("en-CA",{ weekday:"short" }).toUpperCase();
+      const md  = dt.toLocaleDateString("en-CA",{ month:"2-digit", day:"2-digit" });
+      return `${dow} ${md} ${dailyIcon(rain[i],hi[i])} ${Math.round(hi[i])}°/${Math.round(lo[i])}°`;
     });
 
     weatherText = `WEATHER: ${parts.join("   •   ")}`;
     rebuildTicker();
 
-  } catch (err) {
-    console.error("Weather error:", err);
-    if (nowMeta) nowMeta.textContent = "WEATHER UNAVAILABLE";
+  } catch {
     weatherText = "WEATHER UNAVAILABLE";
+    if (nowMeta) nowMeta.textContent = "WEATHER UNAVAILABLE";
     rebuildTicker();
   }
 }
@@ -201,35 +193,27 @@ async function loadSports() {
     encodeURIComponent("https://www.sportsnet.ca/feed/");
 
   function emoji(title){
-    const t = (title || "").toLowerCase();
-    if (t.includes("leaf") || t.includes("nhl") || t.includes("hockey")) return "🏒";
-    if (t.includes("raptor") || t.includes("nba") || t.includes("basketball")) return "🏀";
-    if (t.includes("blue jay") || t.includes("mlb") || t.includes("baseball")) return "⚾";
-    if (t.includes("nfl") || t.includes("football")) return "🏈";
-    if (t.includes("soccer") || t.includes("mls") || t.includes("premier")) return "⚽";
+    const t = title.toLowerCase();
+    if (t.includes("leaf") || t.includes("nhl")) return "🏒";
+    if (t.includes("raptor") || t.includes("nba")) return "🏀";
+    if (t.includes("blue jay") || t.includes("mlb")) return "⚾";
+    if (t.includes("soccer")) return "⚽";
     return "📰";
   }
 
   try {
     const res  = await fetch(rss, { cache:"no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    const items = Array.isArray(data?.items) ? data.items : [];
-    const headlines = items
-      .slice(0, 10)
-      .map(h => h?.title ? `${emoji(h.title)} ${String(h.title).toUpperCase()}` : "")
-      .filter(Boolean);
+    const headlines = data.items
+      .slice(0,10)
+      .map(h => `${emoji(h.title)} ${h.title.toUpperCase()}`);
 
-    sportsText = headlines.length
-      ? `SPORTS: ${headlines.join("   •   ")}`
-      : "SPORTS: NO HEADLINES";
-
+    sportsText = `SPORTS: ${headlines.join("   •   ")}`;
     rebuildTicker();
 
-  } catch (err) {
-    console.error("Sports error:", err);
-    sportsText = "SPORTS: HEADLINES UNAVAILABLE";
+  } catch {
+    sportsText = "SPORTS HEADLINES UNAVAILABLE";
     rebuildTicker();
   }
 }
