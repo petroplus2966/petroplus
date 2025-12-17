@@ -56,10 +56,17 @@
       <!-- 3840 × 200 -->
       <footer class="ticker">
 
-        <!-- Left spacer (future logo or alerts) -->
-        <div class="tickLeft"></div>
+        <!-- 20%: CURRENT CONDITIONS -->
+        <div class="tickNow" id="tickNow">
+          <div class="nowTop">
+            <span class="nowLabel">NOW</span>
+            <span class="nowIcon" id="nowIcon">—</span>
+          </div>
+          <div class="nowTemp" id="nowTemp">—°C</div>
+          <div class="nowMeta" id="nowMeta">—</div>
+        </div>
 
-        <!-- Middle: 7-day scrolling forecast -->
+        <!-- 60%: 7-DAY SCROLLING FORECAST -->
         <div class="tickScroll">
           <div class="marquee">
             <div class="marqueeTrack" id="forecastTrack">
@@ -68,7 +75,7 @@
           </div>
         </div>
 
-        <!-- Right: stacked Location / Date / Time -->
+        <!-- 20%: LOCATION / DATE / TIME -->
         <div class="tickRightStack">
           <div class="loc">OHSWEKEN</div>
           <div class="date" id="dateText">—</div>
