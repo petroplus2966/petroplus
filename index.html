@@ -5,30 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Menu Board</title>
   <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
   <meta http-equiv="refresh" content="300">
 </head>
 
 <body>
-  <main class="board">
-    <!-- ZONE 1 -->
-    <section class="zone z1">
-      <img class="fit" src="menu.jpg" alt="Menu" />
-    </section>
+  <div class="screen">
+    <div class="canvas">
+      <!-- MENU: 2790x1960 -->
+      <section class="zone menu">
+        <img class="img contain" src="menu.jpg" alt="Menu" />
+      </section>
 
-    <!-- ZONE 2 (remove iframe; use an image) -->
-    <section class="zone z2">
-      <img class="fit" src="promo2.jpg" alt="Promo" />
-    </section>
+      <!-- PROMO TOP: 1050x980 -->
+      <section class="zone promo promoTop">
+        <img id="promoTopImg" class="img cover" src="promo1.jpg" alt="Promo Top" />
+      </section>
 
-    <!-- ZONE 3 (use menu again or add another promo image later) -->
-    <section class="zone z3">
-      <img class="fit" src="menu.jpg" alt="Menu" />
-    </section>
+      <!-- PROMO BOTTOM: 1050x980 -->
+      <section class="zone promo promoBottom">
+        <img id="promoBottomImg" class="img cover" src="promo2.jpg" alt="Promo Bottom" />
+      </section>
 
-    <!-- ZONE 4 -->
-    <section class="zone z4">
-      <img class="fit" src="promo3.jpg" alt="Promo" />
-    </section>
-  </main>
+      <!-- TICKER: 3840x200 -->
+      <footer class="ticker">
+        <div class="tickLeft">
+          <span class="label">OHSWEKEN</span>
+          <span class="muted" id="dateText">—</span>
+        </div>
+
+        <div class="tickMid">
+          <span class="label">Today</span> <span id="todayWeather">—</span>
+          <span class="sep">|</span>
+          <span class="label">Tomorrow</span> <span id="tomorrowWeather">—</span>
+        </div>
+
+        <div class="tickRight" id="clock">—:—</div>
+      </footer>
+    </div>
+  </div>
 </body>
 </html>
