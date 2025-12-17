@@ -1,32 +1,35 @@
-/* =========================================================
-   ROOT
-========================================================= */
 :root{
-  --W: 3840;
-  --H: 2160;
+  --W:3840;
+  --H:2160;
+
+  --menuW:2790;
+  --menuH:1960;
+
+  --promoW:1050;
+  --promoH:1960;
+
+  --tickerH:200;
 }
 
 /* =========================================================
-   RESET
+   RESET / BASE
 ========================================================= */
-*,
-*::before,
-*::after{
+*{
   box-sizing:border-box;
 }
 
-html, body{
-  width:100%;
-  height:100%;
+html,body{
   margin:0;
   padding:0;
+  width:100%;
+  height:100%;
   background:#000;
   overflow:hidden;
   font-family: Arial, Helvetica, sans-serif;
 }
 
 /* =========================================================
-   SCREEN / CANVAS
+   SCREEN & CANVAS (AUTO SCALE 4K)
 ========================================================= */
 .screen{
   width:100vw;
@@ -39,11 +42,19 @@ html, body{
   width:3840px;
   height:2160px;
   position:relative;
+  transform-origin: top left;
+}
 
-  /* scale safely to any display */
-  --scale: min(calc(100vw / 3840), calc(100vh / 2160));
-  transform: scale(var(--scale));
-  transform-origin:center center;
+/* Scale canvas to any screen */
+@media (min-aspect-ratio: 3840/2160){
+  .canvas{
+    transform: scale(calc(100vh / 2160));
+  }
+}
+@media (max-aspect-ratio: 3840/2160){
+  .canvas{
+    transform: scale(calc(100vw / 3840));
+  }
 }
 
 /* =========================================================
@@ -51,7 +62,7 @@ html, body{
 ========================================================= */
 .zone{
   position:absolute;
-  background:#000;
+  background:#0e0e0e;
   overflow:hidden;
 }
 
@@ -63,24 +74,17 @@ html, body{
   height:1960px;
 }
 
-/* PROMO A */
-.promoA{
+/* PROMO (SINGLE RIGHT COLUMN) */
+.promo{
   left:2790px;
   top:0;
   width:1050px;
-  height:910px;
-}
-
-/* PROMO B */
-.promoB{
-  left:2790px;
-  top:910px;
-  width:1050px;
-  height:1050px;
+  height:1960px;
+  background:#000;
 }
 
 /* =========================================================
-   TICKER — HARD GRID (10 / 80 / 10)
+   TICKER
 ========================================================= */
 .ticker{
   position:absolute;
@@ -88,111 +92,113 @@ html, body{
   top:1960px;
   width:3840px;
   height:200px;
+  background:#151515;
+  color:#f2f2f2;
 
-  background:#1b1b1b;
-  color:#fff;
-
-  display:grid !important;
-  grid-template-columns: 10% 80% 10% !important;
+  display:grid;
+  grid-template-columns: 10% 80% 10%;
   align-items:center;
 
-  padding:0 56px;
+  padding:0 48px;
   font-weight:900;
   text-transform:uppercase;
-  letter-spacing:1.1px;
+  letter-spacing:1px;
 }
 
 /* =========================================================
-   LEFT — CURRENT CONDITIONS (10%)
+   TICKER – LEFT (CURRENT WEATHER)
 ========================================================= */
 .tickNow{
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:4px;
-  line-height:1.05;
+  gap:6px;
 }
 
 .nowTop{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
 }
 
 .nowLabel{
-  font-size:22px;
-  opacity:0.9;
+  font-size:26px;
+  opacity:.85;
 }
 
 .nowIcon{
-  font-size:30px;
+  font-size:40px;
 }
 
 .nowTemp{
-  font-size:54px;
+  font-size:56px;
+  line-height:1;
 }
 
 .nowMeta{
-  font-size:18px;
-  opacity:0.85;
+  font-size:22px;
+  opacity:.85;
 }
 
 /* =========================================================
-   MIDDLE — SCROLLING FORECAST (80%)
+   TICKER – CENTER (MARQUEE)
 ========================================================= */
 .tickScroll{
   width:100%;
   overflow:hidden;
-  white-space:nowrap;
 }
 
 .marquee{
   width:100%;
   overflow:hidden;
+  white-space:nowrap;
 }
 
 .marqueeTrack{
   display:inline-block;
   padding-left:100%;
-  animation: marquee 110s linear infinite;
-  font-size:46px;
-  will-change:transform;
+  animation: marquee 120s linear infinite;
+  font-size:40px;
 }
 
+/* Smooth sports-bar crawl */
 @keyframes marquee{
-  from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
+  from{
+    transform: translateX(0);
+  }
+  to{
+    transform: translateX(-100%);
+  }
 }
 
 /* =========================================================
-   RIGHT — LOCATION / DATE / TIME (10%)
+   TICKER – RIGHT (LOCATION / DATE / TIME)
 ========================================================= */
 .tickRightStack{
+  text-align:right;
   display:flex;
   flex-direction:column;
-  align-items:flex-end;
   justify-content:center;
-  text-align:right;
-  gap:4px;
-  line-height:1.05;
+  gap:6px;
 }
 
 .tickRightStack .loc{
-  font-size:30px;
-  opacity:0.95;
+  font-size:26px;
+  opacity:.9;
 }
 
 .tickRightStack .date{
   font-size:24px;
-  opacity:0.85;
+  opacity:.85;
 }
 
 .tickRightStack .time{
   font-size:56px;
+  line-height:1;
 }
 
 /* =========================================================
-   IMAGES
+   IMAGES / VIDEO
 ========================================================= */
 .img{
   width:100%;
@@ -200,14 +206,11 @@ html, body{
   display:block;
 }
 
-/* Menu should never crop */
-.contain{
-  object-fit:contain;
-  background:#000;
-}
-
-/* Promos MUST fill */
 .cover{
   object-fit:cover;
+}
+
+.contain{
+  object-fit:contain;
   background:#000;
 }
