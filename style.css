@@ -2,21 +2,17 @@
   --W:3840;
   --H:2160;
 
-  --menuW:2790;
-  --menuH:1960;
-
-  --promoW:1050;
-  --promoH:1960;
-
-  --tickerH:200;
+  /* layout ratios from your 4K design */
+  --menuWpct:72.65625%;     /* 2790 / 3840 */
+  --promoWpct:27.34375%;    /* 1050 / 3840 */
+  --mainHpct:90.74074%;     /* 1960 / 2160 */
+  --tickerHpct:9.25926%;    /* 200 / 2160 */
 }
 
 /* =========================================================
    RESET / BASE
 ========================================================= */
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; }
 
 html,body{
   margin:0;
@@ -29,32 +25,24 @@ html,body{
 }
 
 /* =========================================================
-   SCREEN & CANVAS (AUTO SCALE 4K)
+   FIRE STICK SAFE SCALING (NO TRANSFORM)
 ========================================================= */
 .screen{
   width:100vw;
   height:100vh;
+  background:#000;
   display:grid;
   place-items:center;
+  overflow:hidden;
 }
 
+/* Responsive “4K canvas” */
 .canvas{
-  width:3840px;
-  height:2160px;
+  aspect-ratio: 3840 / 2160;
+  width: min(100vw, calc(100vh * (3840 / 2160)));
+  height: min(100vh, calc(100vw * (2160 / 3840)));
   position:relative;
-  transform-origin: top left;
-}
-
-/* Scale canvas to any screen */
-@media (min-aspect-ratio: 3840/2160){
-  .canvas{
-    transform: scale(calc(100vh / 2160));
-  }
-}
-@media (max-aspect-ratio: 3840/2160){
-  .canvas{
-    transform: scale(calc(100vw / 3840));
-  }
+  background:#000;
 }
 
 /* =========================================================
@@ -66,32 +54,33 @@ html,body{
   overflow:hidden;
 }
 
-/* MENU */
+/* MENU (left) */
 .menu{
   left:0;
   top:0;
-  width:2790px;
-  height:1960px;
+  width:var(--menuWpct);
+  height:var(--mainHpct);
 }
 
-/* PROMO (SINGLE RIGHT COLUMN) */
+/* PROMO (right column) */
 .promo{
-  left:2790px;
+  left:var(--menuWpct);
   top:0;
-  width:1050px;
-  height:1960px;
+  width:var(--promoWpct);
+  height:var(--mainHpct);
   background:#000;
 }
 
 /* =========================================================
-   TICKER
+   TICKER (bottom)
 ========================================================= */
 .ticker{
   position:absolute;
   left:0;
-  top:1960px;
-  width:3840px;
-  height:200px;
+  top:var(--mainHpct);
+  width:100%;
+  height:var(--tickerHpct);
+
   background:#151515;
   color:#f2f2f2;
 
@@ -99,7 +88,7 @@ html,body{
   grid-template-columns: 10% 80% 10%;
   align-items:center;
 
-  padding:0 48px;
+  padding:0 2.2vw;
   font-weight:900;
   text-transform:uppercase;
   letter-spacing:1px;
@@ -112,31 +101,31 @@ html,body{
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:6px;
+  gap:0.25em;
 }
 
 .nowTop{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:0.6em;
 }
 
 .nowLabel{
-  font-size:26px;
+  font-size: clamp(14px, 1.0vw, 26px);
   opacity:.85;
 }
 
 .nowIcon{
-  font-size:40px;
+  font-size: clamp(18px, 1.4vw, 40px);
 }
 
 .nowTemp{
-  font-size:56px;
+  font-size: clamp(22px, 2.1vw, 56px);
   line-height:1;
 }
 
 .nowMeta{
-  font-size:22px;
+  font-size: clamp(12px, 0.95vw, 22px);
   opacity:.85;
 }
 
@@ -158,17 +147,13 @@ html,body{
   display:inline-block;
   padding-left:100%;
   animation: marquee 120s linear infinite;
-  font-size:40px;
+  font-size: clamp(16px, 1.55vw, 40px);
 }
 
-/* Smooth sports-bar crawl */
+/* Smooth crawl */
 @keyframes marquee{
-  from{
-    transform: translateX(0);
-  }
-  to{
-    transform: translateX(-100%);
-  }
+  from{ transform: translateX(0); }
+  to{ transform: translateX(-100%); }
 }
 
 /* =========================================================
@@ -179,21 +164,21 @@ html,body{
   display:flex;
   flex-direction:column;
   justify-content:center;
-  gap:6px;
+  gap:0.25em;
 }
 
 .tickRightStack .loc{
-  font-size:26px;
+  font-size: clamp(14px, 1.0vw, 26px);
   opacity:.9;
 }
 
 .tickRightStack .date{
-  font-size:24px;
+  font-size: clamp(12px, 0.95vw, 24px);
   opacity:.85;
 }
 
 .tickRightStack .time{
-  font-size:56px;
+  font-size: clamp(22px, 2.1vw, 56px);
   line-height:1;
 }
 
@@ -206,17 +191,11 @@ html,body{
   display:block;
 }
 
-.cover{
-  object-fit:cover;
-}
-
-.contain{
-  object-fit:contain;
-  background:#000;
-}
+.cover{ object-fit:cover; }
+.contain{ object-fit:contain; background:#000; }
 
 /* =========================================================
-   PROMO FADE TRANSITION (15s slideshow)
+   PROMO FADE TRANSITION
 ========================================================= */
 #promoImg{
   opacity:1;
