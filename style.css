@@ -1,15 +1,19 @@
+/* =========================================================
+   ROOT LAYOUT RATIOS (4K DESIGN)
+========================================================= */
 :root{
-  /* layout ratios from your 4K design */
-  --menuWpct:72.65625%;     /* 2790 / 3840 */
-  --promoWpct:27.34375%;    /* 1050 / 3840 */
-  --mainHpct:90.74074%;     /* 1960 / 2160 */
-  --tickerHpct:9.25926%;    /* 200 / 2160 */
+  --menuWpct:72.65625%;   /* 2790 / 3840 */
+  --promoWpct:27.34375%;  /* 1050 / 3840 */
+  --mainHpct:90.74074%;   /* 1960 / 2160 */
+  --tickerHpct:9.25926%;  /* 200 / 2160 */
 }
 
 /* =========================================================
    RESET / BASE
 ========================================================= */
-*{ box-sizing:border-box; }
+*{
+  box-sizing:border-box;
+}
 
 html,body{
   margin:0;
@@ -22,18 +26,16 @@ html,body{
 }
 
 /* =========================================================
-   SCREEN + RESPONSIVE CANVAS (CHROME FIRST)
+   SCREEN + RESPONSIVE 4K CANVAS (NO TRANSFORMS)
 ========================================================= */
 .screen{
   width:100vw;
   height:100vh;
-  background:#000;
   display:grid;
   place-items:center;
-  overflow:hidden;
+  background:#000;
 }
 
-/* Responsive “4K canvas” without transform (sharp text) */
 .canvas{
   aspect-ratio: 3840 / 2160;
   width: min(100vw, calc(100vh * (3840 / 2160)));
@@ -47,11 +49,11 @@ html,body{
 ========================================================= */
 .zone{
   position:absolute;
-  background:#0e0e0e;
   overflow:hidden;
+  background:#0e0e0e;
 }
 
-/* MENU (left) */
+/* MENU ZONE */
 .menu{
   left:0;
   top:0;
@@ -59,7 +61,7 @@ html,body{
   height:var(--mainHpct);
 }
 
-/* PROMO (right column) */
+/* PROMO ZONE */
 .promo{
   left:var(--menuWpct);
   top:0;
@@ -69,7 +71,28 @@ html,body{
 }
 
 /* =========================================================
-   TICKER — CHROME OPTIMIZED
+   PROMO CROSSFADE (A/B LAYERS)
+========================================================= */
+.promoSlide{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;     /* change to cover if you want crop */
+  background:#000;
+
+  opacity:0;
+  transition: opacity 0.8s ease-in-out;
+  will-change: opacity;
+}
+
+.promoSlide.isVisible{
+  opacity:1;
+}
+
+/* =========================================================
+   TICKER
 ========================================================= */
 .ticker{
   position:absolute;
@@ -91,7 +114,9 @@ html,body{
   letter-spacing:1px;
 }
 
-/* LEFT — CURRENT WEATHER */
+/* =========================================================
+   TICKER – LEFT (CURRENT WEATHER)
+========================================================= */
 .tickNow{
   display:flex;
   flex-direction:column;
@@ -106,13 +131,8 @@ html,body{
   gap:0.6em;
 }
 
-.nowLabel{
-  font-size: clamp(18px, 1.2vw, 30px);
-  opacity:.85;
-}
-
 .nowIcon{
-  font-size: clamp(26px, 1.8vw, 48px);
+  font-size: clamp(28px, 2.0vw, 48px);
   line-height:1;
 }
 
@@ -129,7 +149,9 @@ html,body{
   text-overflow:ellipsis;
 }
 
-/* CENTER — SCROLL */
+/* =========================================================
+   TICKER – CENTER (CONTINUOUS SCROLL)
+========================================================= */
 .tickScroll{
   width:100%;
   overflow:hidden;
@@ -138,14 +160,14 @@ html,body{
 
 .marquee{
   width:100%;
-  overflow:hidden;
   white-space:nowrap;
+  overflow:hidden;
 }
 
 .marqueeTrack{
   display:inline-block;
   padding-left:100%;
-  animation: marquee 210s linear infinite; /* slower + readable */
+  animation: marquee 210s linear infinite;
   font-size: clamp(24px, 2.0vw, 44px);
   line-height:1.15;
 }
@@ -156,7 +178,9 @@ html,body{
   to{ transform: translateX(-100%); }
 }
 
-/* RIGHT — STACK */
+/* =========================================================
+   TICKER – RIGHT (LOCATION / DATE / TIME)
+========================================================= */
 .tickRightStack{
   text-align:right;
   display:flex;
@@ -176,19 +200,15 @@ html,body{
 .tickRightStack .date{
   font-size: clamp(16px, 1.1vw, 26px);
   opacity:.85;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
 .tickRightStack .time{
   font-size: clamp(36px, 2.8vw, 64px);
   line-height:1.1;
-  white-space:nowrap;
 }
 
 /* =========================================================
-   IMAGES / VIDEO
+   IMAGES
 ========================================================= */
 .img{
   width:100%;
@@ -196,17 +216,11 @@ html,body{
   display:block;
 }
 
-.cover{ object-fit:cover; }
-.contain{ object-fit:contain; background:#000; }
-
-/* =========================================================
-   PROMO FADE TRANSITION (15s slideshow uses this)
-========================================================= */
-#promoImg{
-  opacity:1;
-  transition: opacity 0.8s ease-in-out;
+.contain{
+  object-fit:contain;
+  background:#000;
 }
 
-#promoImg.fadeOut{
-  opacity:0;
+.cover{
+  object-fit:cover;
 }
